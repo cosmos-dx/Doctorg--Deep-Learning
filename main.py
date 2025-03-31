@@ -9,9 +9,6 @@ import os
 from crewai import Crew, Agent, LLM, Task
 import google.generativeai as genai
 
-os.environ["SERPER_API_KEY"] = "your_api_key"
-os.environ["GEMINI_API_KEY"] = "your_api_key"
-os.environ["GOOGLE_API_KEY"] = "your_api_key"
 
 model_llm = genai.GenerativeModel("models/gemini-2.0-flash-exp")
 st.set_page_config(page_title="Disease Prediction AI", page_icon="🩺", layout="wide")
