@@ -6,13 +6,7 @@ scikit-learn==1.6.1
 google-generativeai==0.8.4
 crewai==0.100.1
 tf-keras==2.19.0
-tensorboard==2.19.0
-tensorboard-data-server==0.7.2
 tensorflow==2.19.0
-tensorflow-io-gcs-filesystem==0.31.0
-tensorflow_intel==2.18.0
 spacy==3.8.3
-spacy-legacy==3.0.12
-spacy-loggers==1.0.5
-chroma-hnswlib==0.7.6
 chromadb==0.6.3
+db-sqlite3==0.0.1
