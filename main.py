@@ -86,7 +86,7 @@ st.sidebar.markdown(
 try:
     nlp = spacy.load("en_core_web_sm")
 except OSError:
-    st.write("Downloading en_core_web_sm language model for SpaCy...")
+    # st.write("Downloading en_core_web_sm language model for SpaCy...")
     spacy.cli.download("en_core_web_sm")
     nlp = spacy.load("en_core_web_sm")
 
