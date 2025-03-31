@@ -83,12 +83,20 @@ st.sidebar.markdown(
     unsafe_allow_html=True,
 )
 
-try:
-    nlp = spacy.load("en_core_web_sm")
-except OSError:
-    # st.write("Downloading en_core_web_sm language model for SpaCy...")
-    spacy.cli.download("en_core_web_sm")
-    nlp = spacy.load("en_core_web_sm")
+# try:
+#     nlp = spacy.load("en_core_web_sm")
+# except OSError:
+#     # st.write("Downloading en_core_web_sm language model for SpaCy...")
+#     spacy.cli.download("en_core_web_sm")
+#     nlp = spacy.load("en_core_web_sm")
+
+model_path = "en_core_web_sm"
+
+# Check if the model directory exists locally
+if os.path.exists(model_path):
+    nlp = spacy.load(model_path)
+else:
+    st.write(f"Model path {model_path} does not exist. Please ensure the model is present.")
 
 
 df = pd.read_csv("doctorg_processed.csv")
