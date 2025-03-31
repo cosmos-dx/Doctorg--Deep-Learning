@@ -10,3 +10,4 @@ tensorflow==2.19.0
 spacy==3.8.3
 chromadb==0.6.3
 db-sqlite3==0.0.1
+sqlite3==3.35.0
