@@ -7,3 +7,4 @@ sentence-transformers==4.0.1
 scikit-learn==1.6.1
 google-generativeai==0.8.4
 crewai==0.100.1
+tf-keras==2.19.0
