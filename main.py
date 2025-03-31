@@ -178,7 +178,7 @@ st.write("Enter your symptoms in natural language and get AI-powered guidance!")
 
 user_input = st.text_area("Describe your symptoms:", "")
 
-if st.button("Predict Disease"):
+if st.button("Check Probable Disease"):
     if user_input.strip():
         extracted_symptoms = extract_symptoms(user_input)
         
