@@ -1,3 +1,7 @@
+import sys
+sys.modules["sqlite3"] = __import__("pysqlite3")
+
+
 import streamlit as st
 import spacy
 import numpy as np
