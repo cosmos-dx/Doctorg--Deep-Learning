@@ -102,7 +102,7 @@ except OSError:
 df = pd.read_csv("doctorg_processed.csv")
 label_encoder = LabelEncoder()
 df["disease_encoded"] = label_encoder.fit_transform(df["name"])
-sentence_model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+sentence_model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2", device ="cpu")
 
 interpreter = tflite.Interpreter(model_path="doctorg_model.tflite")
 interpreter.allocate_tensors()
