@@ -1,0 +1,177 @@
+---
+description: Backend and frontend coding standards for DoctorG project
+alwaysApply: true
+---
+
+# DoctorG Project Standards
+
+## Backend Architecture (Flask)
+
+### Design Patterns
+- **DRY Principle**: Never repeat code - extract reusable logic into functions/classes
+- **Factory Pattern**: Use factory functions for object creation
+- **Dependency Injection**: Pass dependencies via constructors/parameters, never hardcode
+
+```python
+# ✅ GOOD - Factory Pattern with DI
+class EmailService:
+    def __init__(self, smtp_config):
+        self.config = smtp_config
+    
+    def send(self, to, subject, body):
+        pass
+
+def create_email_service(config):
+    return EmailService(config)
+
+# ❌ BAD - Hardcoded values
+class EmailService:
+    def send(self, to, subject, body):
+        smtp_server = "smtp.gmail.com"  # Never hardcode!
+```
+
+### Constants Management
+- All static strings, error messages, and configuration values go in `constants.py` or similar
+- Group related constants in classes or modules
+
+```python
+# constants.py
+class ErrorMessages:
+    USER_NOT_FOUND = "User not found"
+    INVALID_CREDENTIALS = "Invalid credentials"
+    DATABASE_ERROR = "Database operation failed"
+
+class APIEndpoints:
+    USER_LOGIN = "/api/auth/login"
+    USER_REGISTER = "/api/auth/register"
+```
+
+### No Hardcoded Secrets
+- Never commit secrets, API keys, or credentials
+- Use environment variables via `.env` file
+- Load using `python-dotenv` or similar
+
+```python
+# ✅ GOOD
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+DATABASE_URL = os.getenv('DATABASE_URL')
+
+# ❌ BAD
+DATABASE_URL = "postgresql://user:pass@localhost/db"
+```
+
+### Server-Sent Events (SSE)
+- Implement SSE endpoints for real-time updates
+- Use Flask-SSE or implement custom SSE with generators
+
+```python
+from flask import Response, stream_with_context
+import time
+
+@app.route('/stream')
+def stream():
+    def generate():
+        while True:
+            yield f"data: {get_latest_data()}\n\n"
+            time.sleep(1)
+    return Response(stream_with_context(generate()), 
+                    mimetype='text/event-stream')
+```
+
+## Frontend Architecture
+
+### State Management (Zustand)
+- Use Zustand for global state management
+- Keep stores focused and minimal
+- Separate concerns into multiple stores if needed
+
+```typescript
+// ✅ GOOD - Clean Zustand store
+import create from 'zustand'
+
+interface UserStore {
+  user: User | null
+  setUser: (user: User) => void
+  clearUser: () => void
+}
+
+export const useUserStore = create<UserStore>((set) => ({
+  user: null,
+  setUser: (user) => set({ user }),
+  clearUser: () => set({ user: null })
+}))
+```
+
+### Server-Sent Events (Frontend)
+- Use EventSource API for SSE connections
+- Handle connection errors and reconnection
+
+```typescript
+// ✅ GOOD - SSE with error handling
+const eventSource = new EventSource('/api/stream')
+
+eventSource.onmessage = (event) => {
+  const data = JSON.parse(event.data)
+  updateStore(data)
+}
+
+eventSource.onerror = (error) => {
+  console.error('SSE connection error:', error)
+  eventSource.close()
+}
+```
+
+### Constants Management
+- Create `constants.ts` files for frontend static values
+- Centralize API endpoints, error messages, etc.
+
+```typescript
+// constants.ts
+export const API_ENDPOINTS = {
+  AUTH_LOGIN: '/api/auth/login',
+  AUTH_REGISTER: '/api/auth/register'
+} as const
+
+export const ERROR_MESSAGES = {
+  NETWORK_ERROR: 'Network connection failed',
+  INVALID_INPUT: 'Please check your input'
+} as const
+```
+
+## Comment Guidelines
+
+### NO Plain Comments
+- Do not write regular comments like `// this does X`
+- Code should be self-documenting with clear names
+
+### ONLY Use Tagged Comments
+Use these specific tags for important notes:
+
+```python
+# @TODO: Implement user authentication
+# @INFO: This function expects ISO 8601 date format
+# @BLAIM: Original implementation by @username - do not modify without consulting
+# @FIX: Temporary workaround for API bug - remove when fixed upstream
+```
+
+```typescript
+// @TODO: Add input validation
+// @INFO: Component re-renders on store changes
+// @BLAIM: Legacy code from v1 - requires refactoring
+// @FIX: Workaround for browser compatibility issue
+```
+
+## Code Quality Checklist
+
+- [ ] No hardcoded strings (use constants)
+- [ ] No hardcoded secrets (use environment variables)
+- [ ] No regular comments (only tagged: @TODO, @INFO, @BLAIM, @FIX)
+- [ ] DRY principle followed
+- [ ] Factory pattern used for object creation
+- [ ] Dependency injection implemented
+- [ ] Backend SSE endpoints implemented
+- [ ] Frontend SSE connections handled
+- [ ] Zustand stores are clean and focused
