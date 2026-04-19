@@ -86,6 +86,33 @@ class AgentOrchestrator:
             logger.error(f"Clarity classification failed: {e}")
             return CLARITY_CLEAR
 
+    async def _is_ready_for_diagnosis(self, context: AgentContext) -> bool:
+        """
+        Determine if the consultation has enough detail to provide a safe differential diagnosis.
+        """
+        history_block = ""
+        if context.conversation_history:
+            lines = [f"{m.get('role','user').upper()}: {m.get('content','')}" for m in context.conversation_history]
+            history_block = f"Conversation so far:\n" + "\n".join(lines) + "\n\n"
+            
+        prompt = f"{history_block}Current Patient message: \"{context.user_message}\""
+        
+        try:
+            result = await self.openai_service.complete(
+                prompt=prompt,
+                system_prompt=AgentPrompts.DIAGNOSIS_READINESS_CLASSIFIER,
+                temperature=0.1,
+                max_tokens=10
+            )
+            classification = result.strip().upper()
+            if "NOT_READY" in classification:
+                return False
+            return True
+        except Exception as e:
+            logger.error(f"Readiness classification failed: {e}")
+            # Default to True so it falls back to full flow if this errors
+            return True
+
     async def _generate_clarification(self, context: AgentContext) -> AsyncIterator[str]:
         """Stream a short clarification response for vague queries."""
         history_block = ""
@@ -161,15 +188,18 @@ class AgentOrchestrator:
         if urgency_level in ["emergency", "urgent"]:
             responses[AgentTypes.DIAGNOSTIC] = await self.diagnostic_agent.process(context)
         else:
-            diagnostic_response = await self.diagnostic_agent.process(context)
-            lifestyle_response = await self.lifestyle_agent.process(context)
-            followup_response = await self.followup_agent.process(context)
-            
-            responses.update({
-                AgentTypes.DIAGNOSTIC: diagnostic_response,
-                AgentTypes.LIFESTYLE: lifestyle_response,
-                AgentTypes.FOLLOWUP: followup_response
-            })
+            is_ready = await self._is_ready_for_diagnosis(context)
+            if not is_ready:
+                followup_response = await self.followup_agent.process(context)
+                responses.update({AgentTypes.FOLLOWUP: followup_response})
+            else:
+                diagnostic_response = await self.diagnostic_agent.process(context)
+                lifestyle_response = await self.lifestyle_agent.process(context)
+                
+                responses.update({
+                    AgentTypes.DIAGNOSTIC: diagnostic_response,
+                    AgentTypes.LIFESTYLE: lifestyle_response
+                })
         
         final_response = self._aggregate_responses(responses)
         
@@ -299,6 +329,33 @@ class AgentOrchestrator:
             "metadata": rag_response.metadata
         }
         
+        is_ready = await self._is_ready_for_diagnosis(context)
+        
+        if not is_ready:
+            yield {
+                "type": "agent_start",
+                "agent": AgentTypes.FOLLOWUP,
+                "content": "### Clarifying Questions\n\n"
+            }
+            
+            async for chunk in self.followup_agent.process_stream(context):
+                yield {
+                    "type": "content",
+                    "agent": AgentTypes.FOLLOWUP,
+                    "content": chunk
+                }
+            
+            yield {
+                "type": "disclaimer",
+                "content": f"\n\n---\n{AgentPrompts.MEDICAL_DISCLAIMER}"
+            }
+            
+            yield {
+                "type": "complete",
+                "content": ""
+            }
+            return
+        
         yield {
             "type": "agent_start",
             "agent": AgentTypes.DIAGNOSTIC,
@@ -322,19 +379,6 @@ class AgentOrchestrator:
             yield {
                 "type": "content",
                 "agent": AgentTypes.LIFESTYLE,
-                "content": chunk
-            }
-        
-        yield {
-            "type": "agent_start",
-            "agent": AgentTypes.FOLLOWUP,
-            "content": "\n\n---\n\n"
-        }
-        
-        async for chunk in self.followup_agent.process_stream(context):
-            yield {
-                "type": "content",
-                "agent": AgentTypes.FOLLOWUP,
                 "content": chunk
             }
         

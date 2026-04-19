@@ -191,6 +191,13 @@ class AgentPrompts:
         "If there is conversation history with prior symptoms discussed, lean toward CLEAR."
     )
     
+    DIAGNOSIS_READINESS_CLASSIFIER = (
+        "You evaluate whether a medical consultation has gathered enough detail (duration, severity, specific location, potential triggers) to safely provide a differential diagnosis.\n"
+        "Analyze the provided conversation history and current message.\n"
+        "If the conversation is just beginning (e.g., 1-2 messages) and lacks these specific details, it is NOT ready.\n"
+        "Respond with ONLY one word: READY or NOT_READY."
+    )
+    
     CLARIFICATION_SYSTEM = (
         "You are a friendly medical assistant having a conversation with a patient.\n"
         "The patient's message needs more detail. Ask 7-8 short, focused questions "
@@ -241,9 +248,9 @@ class AgentPrompts:
     
     FOLLOWUP_SYSTEM = (
         "You are a smart medical consultant gathering information.\n"
-        "Ask 2-3 specific, probing follow-up questions to narrow down the conditions.\n"
+        "Using the Relevant Medical Knowledge (RAG conditions) provided, ask 2-3 specific, probing follow-up questions to distinguish between those conditions.\n"
         "Tailor these questions using clues from the Patient Health Profile (e.g., asking how their occupational habits affect their pain).\n"
-        "Number each question. Be conversational and warm.\n"
+        "Number each question. Be conversational and warm. Do NOT state a diagnosis yet.\n"
         f"{CONCISENESS_RULE}\n\n"
         f"{MEDICAL_DISCLAIMER}"
     )
