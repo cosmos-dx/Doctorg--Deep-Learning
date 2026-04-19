@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, KeyboardEvent } from 'react'
-import { PaperAirplaneIcon } from '@heroicons/react/24/solid'
 
 interface InputAreaProps {
   onSubmit: (input: string) => void
@@ -18,7 +17,7 @@ export default function InputArea({ onSubmit, disabled }: InputAreaProps) {
     }
   }
 
-  const handleKeyPress = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+  const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       handleSubmit()
@@ -26,33 +25,30 @@ export default function InputArea({ onSubmit, disabled }: InputAreaProps) {
   }
 
   return (
-    <div className="border-t border-border bg-bg-secondary px-6 py-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-end space-x-4">
-          <textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Describe your symptoms..."
-            disabled={disabled}
-            rows={3}
-            className="flex-1 bg-bg-tertiary text-text-primary rounded-lg px-4 py-3 
-                     focus:outline-none focus:ring-2 focus:ring-accent resize-none
-                     disabled:opacity-50 disabled:cursor-not-allowed"
-          />
-          <button
-            onClick={handleSubmit}
-            disabled={disabled || !input.trim()}
-            className="bg-accent text-white rounded-lg p-3 hover:bg-opacity-90 
-                     disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-          >
-            <PaperAirplaneIcon className="w-6 h-6" />
-          </button>
-        </div>
-        <p className="text-xs text-text-secondary mt-2">
-          Press Enter to send, Shift+Enter for new line
-        </p>
+    <div className="border-t bg-white px-4 py-3">
+      <div className="max-w-3xl mx-auto flex items-end gap-3">
+        <textarea
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          placeholder="Describe your symptoms..."
+          disabled={disabled}
+          rows={2}
+          className="flex-1 resize-none rounded-xl border border-gray-200 px-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all disabled:opacity-50"
+        />
+        <button
+          onClick={handleSubmit}
+          disabled={disabled || !input.trim()}
+          className="bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl p-3 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-5 h-5">
+            <path d="M3.105 2.288a.75.75 0 0 0-.826.95l1.414 4.926A1.5 1.5 0 0 0 5.135 9.25h6.115a.75.75 0 0 1 0 1.5H5.135a1.5 1.5 0 0 0-1.442 1.086l-1.414 4.926a.75.75 0 0 0 .826.95 28.897 28.897 0 0 0 15.293-7.155.75.75 0 0 0 0-1.114A28.897 28.897 0 0 0 3.105 2.288Z" />
+          </svg>
+        </button>
       </div>
+      <p className="text-xs text-gray-400 text-center mt-2">
+        Not a substitute for professional medical advice. Always consult a doctor.
+      </p>
     </div>
   )
 }

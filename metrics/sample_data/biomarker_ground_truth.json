@@ -1,0 +1,33 @@
+[
+  {
+    "id": "bm_001",
+    "report_text": "COMPLETE BLOOD COUNT\nDate: 15-Jan-2024\nHemoglobin: 13.5 g/dL (Ref: 12.0-17.5)\nWBC: 7.2 x10³/µL (Ref: 4.5-11.0)\nPlatelets: 250 x10³/µL (Ref: 150-400)\nRBC: 4.8 million/µL (Ref: 4.5-5.9)\nHematocrit: 41% (Ref: 36-50)\nMCV: 85 fL (Ref: 80-100)",
+    "expected_biomarkers": [
+      {"name": "Hemoglobin", "value": 13.5, "unit": "g/dL", "reference_low": 12.0, "reference_high": 17.5, "status": "normal"},
+      {"name": "WBC", "value": 7.2, "unit": "x10³/µL", "reference_low": 4.5, "reference_high": 11.0, "status": "normal"},
+      {"name": "Platelets", "value": 250.0, "unit": "x10³/µL", "reference_low": 150.0, "reference_high": 400.0, "status": "normal"},
+      {"name": "RBC", "value": 4.8, "unit": "million/µL", "reference_low": 4.5, "reference_high": 5.9, "status": "normal"},
+      {"name": "Hematocrit", "value": 41.0, "unit": "%", "reference_low": 36.0, "reference_high": 50.0, "status": "normal"},
+      {"name": "MCV", "value": 85.0, "unit": "fL", "reference_low": 80.0, "reference_high": 100.0, "status": "normal"}
+    ]
+  },
+  {
+    "id": "bm_002",
+    "report_text": "LIPID PROFILE\nDate: 20-Feb-2024\nTotal Cholesterol: 245 mg/dL (Normal: <200)\nLDL Cholesterol: 165 mg/dL (Normal: <100)\nHDL Cholesterol: 38 mg/dL (Normal: >40)\nTriglycerides: 210 mg/dL (Normal: <150)",
+    "expected_biomarkers": [
+      {"name": "Total Cholesterol", "value": 245.0, "unit": "mg/dL", "reference_low": null, "reference_high": 200.0, "status": "high"},
+      {"name": "LDL Cholesterol", "value": 165.0, "unit": "mg/dL", "reference_low": null, "reference_high": 100.0, "status": "high"},
+      {"name": "HDL Cholesterol", "value": 38.0, "unit": "mg/dL", "reference_low": 40.0, "reference_high": null, "status": "low"},
+      {"name": "Triglycerides", "value": 210.0, "unit": "mg/dL", "reference_low": null, "reference_high": 150.0, "status": "high"}
+    ]
+  },
+  {
+    "id": "bm_003",
+    "report_text": "THYROID FUNCTION TEST\nTSH: 0.8 mIU/L (Ref: 0.4-4.0)\nFree T4: 1.2 ng/dL (Ref: 0.8-1.8)\nFree T3: 3.1 pg/mL (Ref: 2.3-4.2)",
+    "expected_biomarkers": [
+      {"name": "TSH", "value": 0.8, "unit": "mIU/L", "reference_low": 0.4, "reference_high": 4.0, "status": "normal"},
+      {"name": "Free T4", "value": 1.2, "unit": "ng/dL", "reference_low": 0.8, "reference_high": 1.8, "status": "normal"},
+      {"name": "Free T3", "value": 3.1, "unit": "pg/mL", "reference_low": 2.3, "reference_high": 4.2, "status": "normal"}
+    ]
+  }
+]

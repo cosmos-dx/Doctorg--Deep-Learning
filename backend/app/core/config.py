@@ -4,7 +4,8 @@ All settings loaded from environment variables.
 """
 
 from pydantic_settings import BaseSettings
-from typing import Optional
+from pydantic import field_validator
+from typing import Optional, List, Union
 import os
 
 
@@ -12,16 +13,21 @@ class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
     
     APP_NAME: str = "DoctorG Medical AI"
-    APP_VERSION: str = "1.0.0"
+    APP_VERSION: str = "2.0.0"
     DEBUG: bool = False
+    ENVIRONMENT: str = "development"
     
     DATABASE_URL: str
-    REDIS_URL: str
+    REDIS_URL: str = "redis://localhost:6379"
     
     JWT_SECRET: str
     JWT_ALGORITHM: str = "HS256"
     
     OPENAI_API_KEY: Optional[str] = None
+    OPENAI_MODEL: str = "gpt-4o"
+    OPENAI_MAX_TOKENS: int = 2048
+    OPENAI_TEMPERATURE: float = 0.7
+    
     GOOGLE_API_KEY: Optional[str] = None
     
     POSTGRES_USER: str
@@ -33,7 +39,7 @@ class Settings(BaseSettings):
     REDIS_HOST: str = "localhost"
     REDIS_PORT: int = 6379
     
-    CORS_ORIGINS: list[str] = ["http://localhost:3000", "http://localhost:3001"]
+    CORS_ORIGINS: Union[List[str], str] = "http://localhost:3000,http://localhost:3001"
     
     MODEL_PATH: str = "models/"
     DATA_PATH: str = "data/"
@@ -46,10 +52,20 @@ class Settings(BaseSettings):
     PUBMED_API_KEY: Optional[str] = None
     PUBMED_EMAIL: Optional[str] = None
     
+    @field_validator("CORS_ORIGINS", mode="before")
+    @classmethod
+    def parse_cors_origins(cls, v):
+        if isinstance(v, str):
+            return [origin.strip() for origin in v.split(",") if origin.strip()]
+        return v
+    
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
         case_sensitive = True
+
+
+_settings: Optional[Settings] = None
 
 
 def get_settings() -> Settings:
@@ -57,7 +73,10 @@ def get_settings() -> Settings:
     Factory function to create Settings instance.
     Returns singleton settings object.
     """
-    return Settings()
+    global _settings
+    if _settings is None:
+        _settings = Settings()
+    return _settings
 
 
 settings = get_settings()

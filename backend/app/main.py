@@ -11,7 +11,8 @@ import logging
 from app.core.config import settings
 from app.core.constants import APIEndpoints
 from app.db.database import init_db
-from app.api.v1 import auth, chat, feedback, user
+from app.api.v1 import auth, chat, feedback, user, reports, profile
+from app.services.knowledge_base_init import initialize_knowledge_bases
 
 logging.basicConfig(
     level=settings.LOG_LEVEL,
@@ -56,6 +57,9 @@ async def startup_event():
     logger.info("Starting DoctorG Medical AI Backend")
     init_db()
     logger.info("Database initialized")
+    
+    kb_status = await initialize_knowledge_bases()
+    logger.info(f"Knowledge bases initialization status: {kb_status}")
 
 
 @app.on_event("shutdown")
@@ -74,7 +78,10 @@ async def health_check():
         "services": {
             "database": "connected",
             "llm": "ready",
-            "rag": "ready"
+            "rag": "ready",
+            "report_parser": "ready",
+            "daily_advisor": "ready",
+            "metrics": "ready"
         }
     })
 
@@ -83,3 +90,5 @@ app.include_router(auth.router, prefix="/api/v1/auth", tags=["Authentication"])
 app.include_router(chat.router, prefix="/api/v1/chat", tags=["Chat"])
 app.include_router(feedback.router, prefix="/api/v1/feedback", tags=["Feedback"])
 app.include_router(user.router, prefix="/api/v1/user", tags=["User"])
+app.include_router(reports.router, prefix="/api/v1/reports", tags=["Medical Reports"])
+app.include_router(profile.router, prefix="/api/v1/profile", tags=["Health Profile"])

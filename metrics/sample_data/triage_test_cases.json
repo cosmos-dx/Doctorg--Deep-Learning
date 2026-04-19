@@ -1,0 +1,107 @@
+[
+  {
+    "id": "tc_001",
+    "symptoms": ["chest pain", "shortness of breath", "left arm pain"],
+    "message": "I have severe chest pain radiating to my left arm and I can't breathe properly",
+    "expected_urgency": "emergency",
+    "expected_see_doctor": true
+  },
+  {
+    "id": "tc_002",
+    "symptoms": ["mild headache", "runny nose", "sneezing"],
+    "message": "I have a mild headache and runny nose since yesterday",
+    "expected_urgency": "low",
+    "expected_see_doctor": false
+  },
+  {
+    "id": "tc_003",
+    "symptoms": ["fever", "cough", "fatigue"],
+    "message": "I've had a fever of 101°F for 3 days with a persistent cough and extreme tiredness",
+    "expected_urgency": "moderate",
+    "expected_see_doctor": true
+  },
+  {
+    "id": "tc_004",
+    "symptoms": ["sudden severe headache", "neck stiffness", "sensitivity to light"],
+    "message": "I suddenly got the worst headache of my life with a stiff neck and can't tolerate light",
+    "expected_urgency": "emergency",
+    "expected_see_doctor": true
+  },
+  {
+    "id": "tc_005",
+    "symptoms": ["lower back pain"],
+    "message": "I have mild lower back pain after sitting at my desk all day",
+    "expected_urgency": "low",
+    "expected_see_doctor": false
+  },
+  {
+    "id": "tc_006",
+    "symptoms": ["high fever", "rash", "joint pain"],
+    "message": "I have a high fever 103°F, a rash all over my body, and severe joint pain",
+    "expected_urgency": "urgent",
+    "expected_see_doctor": true
+  },
+  {
+    "id": "tc_007",
+    "symptoms": ["stroke symptoms", "facial drooping", "arm weakness", "slurred speech"],
+    "message": "My father's face is drooping on one side, his arm is weak, and speech is slurred",
+    "expected_urgency": "emergency",
+    "expected_see_doctor": true
+  },
+  {
+    "id": "tc_008",
+    "symptoms": ["sore throat", "mild fever"],
+    "message": "I have a sore throat and mild fever of 99°F since this morning",
+    "expected_urgency": "low",
+    "expected_see_doctor": false
+  },
+  {
+    "id": "tc_009",
+    "symptoms": ["abdominal pain", "vomiting", "diarrhea"],
+    "message": "I have severe abdominal cramps with vomiting and watery diarrhea for 2 days",
+    "expected_urgency": "moderate",
+    "expected_see_doctor": true
+  },
+  {
+    "id": "tc_010",
+    "symptoms": ["seizure", "loss of consciousness"],
+    "message": "My child just had a seizure and lost consciousness for a few minutes",
+    "expected_urgency": "emergency",
+    "expected_see_doctor": true
+  },
+  {
+    "id": "tc_011",
+    "symptoms": ["dizziness", "nausea"],
+    "message": "I feel dizzy and nauseous when I stand up quickly",
+    "expected_urgency": "low",
+    "expected_see_doctor": false
+  },
+  {
+    "id": "tc_012",
+    "symptoms": ["high blood pressure", "blurred vision", "severe headache"],
+    "message": "My BP reading is 180/110, I have blurred vision and a severe headache",
+    "expected_urgency": "urgent",
+    "expected_see_doctor": true
+  },
+  {
+    "id": "tc_013",
+    "symptoms": ["indigestion", "bloating"],
+    "message": "I have indigestion and bloating after eating spicy food",
+    "expected_urgency": "low",
+    "expected_see_doctor": false
+  },
+  {
+    "id": "tc_014",
+    "symptoms": ["difficulty breathing", "severe allergy", "throat swelling"],
+    "message": "I ate peanuts and now my throat is swelling and I can't breathe well",
+    "expected_urgency": "emergency",
+    "expected_see_doctor": true
+  },
+  {
+    "id": "tc_015",
+    "symptoms": ["mild anxiety", "insomnia"],
+    "message": "I've been feeling anxious and can't sleep well for the past week",
+    "expected_urgency": "low",
+    "expected_see_doctor": false
+  }
+]

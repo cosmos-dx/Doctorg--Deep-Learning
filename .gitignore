@@ -56,3 +56,8 @@ secrets/
 *.pem
 *.key
 credentials.json
+
+# Dev script PID files
+.backend.pid
+.frontend.pid
+./pensieve

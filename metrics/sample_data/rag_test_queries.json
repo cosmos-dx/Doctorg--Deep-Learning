@@ -1,0 +1,50 @@
+[
+  {
+    "id": "rq_001",
+    "query": "What are the symptoms of Type 2 diabetes?",
+    "expected_context_topics": ["diabetes", "blood sugar", "insulin", "hyperglycemia"],
+    "reference_answer": "Type 2 diabetes symptoms include frequent urination, increased thirst, unexplained weight loss, fatigue, blurred vision, slow-healing sores, and frequent infections."
+  },
+  {
+    "id": "rq_002",
+    "query": "How is hypertension diagnosed?",
+    "expected_context_topics": ["blood pressure", "hypertension", "diagnosis", "mmHg"],
+    "reference_answer": "Hypertension is diagnosed via blood pressure readings. A reading consistently at or above 130/80 mmHg is considered hypertension. Multiple readings over time and 24-hour ambulatory monitoring may be used."
+  },
+  {
+    "id": "rq_003",
+    "query": "What foods should I avoid with high cholesterol?",
+    "expected_context_topics": ["cholesterol", "diet", "saturated fat", "LDL"],
+    "reference_answer": "With high cholesterol, avoid saturated fats (red meat, full-fat dairy), trans fats (fried foods, margarine), and dietary cholesterol (egg yolks, organ meats). Choose whole grains, fruits, vegetables, and healthy fats instead."
+  },
+  {
+    "id": "rq_004",
+    "query": "What are the warning signs of a heart attack?",
+    "expected_context_topics": ["heart attack", "myocardial infarction", "chest pain", "emergency"],
+    "reference_answer": "Heart attack warning signs: chest pain or pressure, pain radiating to arm/jaw/back, shortness of breath, cold sweats, nausea, lightheadedness, and sudden extreme fatigue."
+  },
+  {
+    "id": "rq_005",
+    "query": "What is the normal range for hemoglobin?",
+    "expected_context_topics": ["hemoglobin", "normal range", "anemia", "blood test"],
+    "reference_answer": "Normal hemoglobin ranges: Men: 13.5–17.5 g/dL; Women: 12.0–15.5 g/dL; Children vary by age. Values below normal indicate anemia."
+  },
+  {
+    "id": "rq_006",
+    "query": "How to manage asthma attacks?",
+    "expected_context_topics": ["asthma", "inhaler", "bronchodilator", "management"],
+    "reference_answer": "For asthma attack management: use a rescue inhaler (albuterol) immediately, sit upright, stay calm, take slow breaths. If no improvement in 20 minutes, seek emergency care. Long-term: use controller inhalers, avoid triggers, monitor peak flow."
+  },
+  {
+    "id": "rq_007",
+    "query": "What are symptoms of kidney stones?",
+    "expected_context_topics": ["kidney stones", "pain", "urination", "ureter"],
+    "reference_answer": "Kidney stone symptoms: severe flank pain (waves), pain radiating to groin, blood in urine, frequent/painful urination, nausea, vomiting, fever if infection present."
+  },
+  {
+    "id": "rq_008",
+    "query": "What causes iron deficiency anemia?",
+    "expected_context_topics": ["iron deficiency", "anemia", "hemoglobin", "ferritin"],
+    "reference_answer": "Iron deficiency anemia causes: inadequate dietary iron, poor absorption (celiac disease), blood loss (heavy periods, GI bleeding), increased demand (pregnancy). Symptoms: fatigue, pallor, shortness of breath, palpitations."
+  }
+]

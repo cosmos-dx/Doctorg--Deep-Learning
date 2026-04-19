@@ -1,38 +1,65 @@
-# DoctorG 2.0 - AI Medical Reasoning Assistant
+# DoctorG 2.0 - AI Medical Consultation Platform
 
-Transform from a static prediction tool into an intelligent Medical AI Assistant with fine-tuned LLM, RAG memory, and real-time streaming.
+An intelligent multi-agent medical consultation system powered by OpenAI GPT-4o, featuring specialized agents for triage, diagnosis, lifestyle recommendations, and safety guardrails.
 
-## 🎯 Phase 1 Features
+## 🎯 Key Features
 
-- **Fine-tuned Medical LLM** (Mistral-7B + LoRA)
-- **RAG Memory Engine** (FAISS + PostgreSQL)
-- **Real-time SSE Streaming**
-- **Subscription Logic** (Free/Premium tiers)
-- **Modern Dark UI** (ChatGPT-style)
-- **Feedback Learning System**
-- **Production-Ready** (Docker + GPU support)
+- **🤖 Multi-Agent System** - 6 specialized AI agents working together
+- **🔒 Safety Guardrails** - Emergency detection and medical safety checks
+- **🧠 RAG-Powered Knowledge** - Medical knowledge base + conversation memory
+- **📱 PWA Support** - Installable progressive web app with offline capability
+- **⚡ Real-time Streaming** - SSE-based agent responses
+- **🎨 Modern UI** - Beautiful, responsive Next.js frontend
+- **🐳 Production-Ready** - Docker deployment with health checks
 
 ## 🏗️ Architecture
 
+### Multi-Agent System
+
+```mermaid
+flowchart TD
+    User[User] --> Frontend[Next.js PWA]
+    Frontend --> API[FastAPI Backend]
+    
+    API --> Orchestrator[Agent Orchestrator]
+    
+    Orchestrator --> Guardrails[Safety Guardrails Agent]
+    Orchestrator --> Triage[Triage Agent]
+    Orchestrator --> Diagnostic[Diagnostic Agent]
+    Orchestrator --> Lifestyle[Lifestyle Agent]
+    Orchestrator --> Followup[Follow-up Agent]
+    
+    Guardrails --> RAG[RAG Agent]
+    Triage --> RAG
+    Diagnostic --> RAG
+    Lifestyle --> RAG
+    
+    RAG --> MedicalKB[Medical Knowledge Base]
+    RAG --> UserMemory[Conversation Memory]
+    
+    Orchestrator --> OpenAI[OpenAI GPT-4o]
+    
+    RAG --> FAISS[FAISS Vector Store]
+    UserMemory --> PostgreSQL[(PostgreSQL)]
 ```
-User → Next.js Frontend (React + Zustand)
-  ↓
-FastAPI Backend (Python + Async)
-  ↓
-Medical LLM (Mistral-7B-LoRA) + RAG (FAISS)
-  ↓
-PostgreSQL + Redis
-```
+
+### Agent Responsibilities
+
+1. **Guardrails Agent** - Detects emergencies, validates safety
+2. **RAG Agent** - Retrieves relevant medical knowledge
+3. **Triage Agent** - Assesses urgency and routes care
+4. **Diagnostic Agent** - Provides differential diagnosis
+5. **Lifestyle Agent** - Suggests evidence-based recommendations
+6. **Follow-up Agent** - Generates clarifying questions
 
 ## 📋 Prerequisites
 
 - **Python 3.10+**
 - **Node.js 18+**
 - **Docker & Docker Compose**
-- **NVIDIA GPU** (for training, optional for inference)
-- **CUDA 11.8+** (for GPU training)
-- **16GB+ RAM** (32GB recommended)
-- **50GB+ Disk Space**
+- **OpenAI API Key** (required)
+- **8GB+ RAM** (16GB recommended)
+- **10GB+ Disk Space**
 
 ## 🚀 Quick Start
 
@@ -113,9 +140,11 @@ npm run dev
 # Access at http://localhost:3000
 ```
 
-## 🎓 Training the Medical LLM
+## 📚 Data Ingestion
 
-### Step 1: Prepare Training Data
+### Ingest Medical Knowledge Base
+
+The system uses a FAISS vector database for fast medical knowledge retrieval:
 
 ```bash
 cd backend
@@ -123,100 +152,118 @@ cd backend
 # Activate virtual environment
 source venv/bin/activate
 
-# Run data preparation (converts CSV to instruction format)
-python scripts/prepare_training_data.py
+# Ingest DoctorG medical dataset
+python scripts/ingest_doctorg_data.py
 ```
 
 This creates:
-- `backend/data/training/train.jsonl` - Training data
-- `backend/data/training/val.jsonl` - Validation data
+- `backend/data/faiss_indices/medical_knowledge.index` - FAISS vector index
+- `backend/data/faiss_indices/medical_knowledge.metadata` - Condition metadata
 
-### Step 2: (Optional) Augment with External Data
-
-```bash
-# Fetch PubMed abstracts and Clinical QA datasets
-python scripts/web_agent.py
-
-# This downloads:
-# - PubMed medical abstracts (1000+)
-# - MedQA clinical questions
-# - PubMedQA dataset
-```
-
-### Step 3: Fine-tune with GPU
-
-**Requirements:**
-- NVIDIA GPU with 16GB+ VRAM (RTX 3090, A100, etc.)
-- CUDA 11.8+ installed
-- PyTorch with CUDA support
-
-```bash
-# Verify GPU is available
-python -c "import torch; print(f'CUDA available: {torch.cuda.is_available()}')"
-
-# Start fine-tuning (takes 2-6 hours depending on GPU)
-python scripts/train_llm.py
-```
-
-**Training Configuration:**
-- Base Model: Mistral-7B-v0.1
-- Method: LoRA (Low-Rank Adaptation)
-- Epochs: 3
-- Batch Size: 4 (adjust based on VRAM)
-- Learning Rate: 2e-4
-- Quantization: 8-bit (reduces VRAM usage)
+**What it does:**
+1. Loads medical conditions from `backend/data/doctorg_data.csv`
+2. Generates embeddings using sentence-transformers
+3. Builds FAISS index for fast similarity search
+4. Stores condition metadata (symptoms, descriptions, weights)
 
 **Expected Output:**
 ```
-Loading model: mistralai/Mistral-7B-v0.1
-Model loaded successfully
-LoRA configuration created
-trainable params: 4,194,304 || all params: 7,241,732,096 || trainable%: 0.0579
-Starting training...
-Epoch 1/3: 100%|██████████| 500/500 [1:23:45<00:00]
-Saving model to backend/models/doctorg-medical-llm
-Training completed successfully!
+Loading data from backend/data/doctorg_data.csv
+Loaded 5000 records
+After cleaning: 4850 records
+Loading embedding model: sentence-transformers/all-MiniLM-L6-v2
+Generating embeddings...
+100%|██████████| 152/152 [00:45<00:00]
+Building FAISS index...
+FAISS index built with 4850 vectors
+✓ DoctorG data ingestion completed successfully!
+  - Indexed: 4850 medical conditions
 ```
 
-### Step 4: Test the Model
+### Medical Knowledge Sources
 
-```bash
-# Test inference
-python -c "
-from backend.scripts.train_llm import MedicalLLMTrainer
+The RAG system retrieves from three sources:
 
-trainer = MedicalLLMTrainer()
-prompt = '''You are a medical AI assistant. Analyze the symptoms and provide a structured medical assessment.
+1. **Medical Knowledge Base** - DoctorG disease dataset (indexed)
+2. **User Conversation History** - Previous consultations (FAISS + PostgreSQL)
+3. **PubMed Literature** - Medical research (placeholder for future enhancement)
 
-Symptoms: headache, fever, fatigue
+## 🤖 Multi-Agent System
 
-Provide your response in JSON format:'''
+### Agent Flow
 
-response = trainer.test_inference(prompt)
-print(response)
-"
-```
+Every consultation goes through these agents:
 
-### Training on Cloud GPU (Alternative)
+1. **Safety Check** (Guardrails Agent)
+   - Detects emergency symptoms
+   - Flags out-of-scope queries
+   - Prevents medication prescriptions
 
-If you don't have a local GPU:
+2. **Knowledge Retrieval** (RAG Agent)
+   - Searches medical knowledge base
+   - Retrieves user conversation history
+   - Provides context to other agents
 
-**Google Colab (Free GPU):**
-```python
-# Upload your code to Google Drive
-# Open Google Colab notebook
-# Mount Drive and run:
+3. **Initial Assessment** (Triage Agent)
+   - Evaluates symptom urgency
+   - Routes to appropriate care level
+   - Determines if follow-up is needed
 
-!pip install -r requirements.txt
-!python scripts/prepare_training_data.py
-!python scripts/train_llm.py
-```
+4. **Analysis** (Diagnostic Agent)
+   - Provides differential diagnosis
+   - Lists 3-5 possible conditions
+   - Suggests medical tests
 
-**AWS/GCP/Azure:**
-- Launch GPU instance (g4dn.xlarge on AWS, n1-standard-4 with T4 on GCP)
-- Clone repository
-- Run training scripts
-- Download trained model
+5. **Recommendations** (Lifestyle Agent)
+   - Evidence-based lifestyle changes
+   - Dietary modifications
+   - Exercise and wellness practices
+
+6. **Clarification** (Follow-up Agent)
+   - Asks targeted questions
+   - Gathers missing information
+   - Improves diagnostic accuracy
+
+### Safety Features
+
+**Emergency Detection:**
+- Chest pain, stroke symptoms, severe bleeding
+- Automatic emergency alert
+- Directs to call 911
+
+**Medical Safety:**
+- Cannot prescribe medications
+- Always includes disclaimer
+- Recommends professional consultation
+
+## 📱 Progressive Web App (PWA)
+
+### Installation
+
+**On Mobile:**
+1. Visit the app in your mobile browser
+2. Tap "Add to Home Screen" (iOS) or "Install" (Android)
+3. App installs like a native app
+
+**On Desktop:**
+1. Look for install icon in browser address bar
+2. Click "Install DoctorG"
+3. App opens in standalone window
+
+### Offline Capabilities
+
+- Caches recent conversations
+- Queues messages when offline
+- Syncs when connection restored
+
+### PWA Features
+
+- ✅ Works offline
+- ✅ Installable on home screen
+- ✅ Fast loading with service worker
+- ✅ Push notifications (future feature)
+- ✅ Responsive design
+- ✅ App-like experience
 
 ## 🐳 Docker Deployment
 
@@ -493,9 +540,56 @@ lsof -ti:8000 | xargs kill -9
 
 ## 📚 API Documentation
 
-Interactive API docs available at:
+### Interactive Documentation
+
 - **Swagger UI**: http://localhost:8000/docs
 - **ReDoc**: http://localhost:8000/redoc
+
+### Key Endpoints
+
+**Authentication:**
+```
+POST /api/v1/auth/register   - Register new user
+POST /api/v1/auth/login      - Login and get JWT token
+POST /api/v1/auth/logout     - Logout user
+```
+
+**Chat/Consultation:**
+```
+POST /api/v1/chat/stream     - Stream agent responses (SSE)
+POST /api/v1/chat/predict    - Get consultation (non-streaming)
+```
+
+**User Management:**
+```
+GET  /api/v1/user/profile    - Get user profile
+GET  /api/v1/user/sessions   - Get consultation history
+```
+
+**Feedback:**
+```
+POST /api/v1/feedback        - Submit consultation feedback
+```
+
+### Streaming Response Format
+
+The `/chat/stream` endpoint returns Server-Sent Events with this structure:
+
+```json
+{
+  "type": "agent_start|content|emergency|complete",
+  "agent": "triage|diagnostic|lifestyle|followup",
+  "content": "Agent response text...",
+  "metadata": { ... }
+}
+```
+
+**Event Types:**
+- `agent_start` - Agent begins processing
+- `content` - Streaming text chunk
+- `agent_complete` - Agent finished
+- `emergency` - Emergency detected
+- `complete` - Consultation done
 
 ## 🤝 Contributing
 
@@ -517,10 +611,11 @@ This project is licensed under the MIT License.
 
 ## 🙏 Acknowledgments
 
-- Mistral AI for the base model
-- Hugging Face for transformers library
-- OpenAI for API integration
+- OpenAI for GPT-4o API and embeddings
+- Sentence Transformers for medical embeddings
+- FAISS for fast similarity search
 - FastAPI and Next.js communities
+- Medical datasets and research papers
 
 ## 📞 Support
 

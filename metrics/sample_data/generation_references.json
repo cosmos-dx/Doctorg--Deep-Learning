@@ -1,0 +1,32 @@
+[
+  {
+    "id": "gr_001",
+    "query": "I have a fever of 102°F, dry cough, and body aches for 2 days. What could it be?",
+    "reference_answer": "Your symptoms of high fever, dry cough, and body aches are commonly associated with influenza (flu) or COVID-19. Other possibilities include other viral respiratory infections. Rest, stay well hydrated, and take fever-reducing medications like paracetamol. If symptoms worsen, breathing becomes difficult, or fever exceeds 104°F, seek medical attention. A COVID-19 test is advisable."
+  },
+  {
+    "id": "gr_002",
+    "query": "My hemoglobin is 9.5 g/dL. What does this mean?",
+    "reference_answer": "A hemoglobin level of 9.5 g/dL is below normal (normal: 12-17.5 g/dL depending on gender), indicating moderate anemia. Common causes include iron deficiency, vitamin B12 or folate deficiency, chronic disease, or blood loss. Symptoms may include fatigue, weakness, and shortness of breath. Consult your doctor for a complete blood panel to identify the cause and appropriate treatment."
+  },
+  {
+    "id": "gr_003",
+    "query": "I have sharp stomach pain on the lower right side. What could it be?",
+    "reference_answer": "Sharp lower right abdominal pain is a common symptom of appendicitis, which requires urgent medical evaluation. Other possibilities include ovarian cyst (in women), groin hernia, kidney stone, muscle strain, or gas pain. If the pain is severe, constant, accompanied by fever, nausea or vomiting, seek immediate medical attention as appendicitis is a medical emergency."
+  },
+  {
+    "id": "gr_004",
+    "query": "What lifestyle changes help with Type 2 diabetes?",
+    "reference_answer": "Key lifestyle changes for Type 2 diabetes management: 1) Diet — reduce refined carbs, sugar, and processed foods; emphasize vegetables, whole grains, lean proteins; 2) Exercise — at least 150 minutes of moderate activity weekly; 3) Weight loss — even 5-10% weight reduction improves blood sugar significantly; 4) Blood sugar monitoring — track readings as advised by your doctor; 5) Sleep and stress management — both affect blood glucose levels; 6) Quit smoking and limit alcohol."
+  },
+  {
+    "id": "gr_005",
+    "query": "I feel dizzy when I stand up quickly. What causes this?",
+    "reference_answer": "Dizziness upon standing quickly is called orthostatic hypotension — a sudden drop in blood pressure when changing position. Common causes include dehydration, prolonged bed rest, certain medications (blood pressure drugs, diuretics), anemia, or autonomic nervous system issues. Stay well hydrated, rise slowly from sitting or lying positions, and avoid prolonged standing. If this occurs frequently or with fainting, consult your doctor."
+  },
+  {
+    "id": "gr_006",
+    "query": "My blood pressure is 145/95. Should I be worried?",
+    "reference_answer": "A blood pressure of 145/95 mmHg falls in Stage 2 Hypertension range. This requires medical attention. Lifestyle modifications include reducing salt intake (<2.3g/day), DASH diet, regular aerobic exercise, stress reduction, limiting alcohol, and quitting smoking. If lifestyle changes don't help within 3 months or if you have other risk factors, your doctor may prescribe blood pressure medication. Monitor regularly and consult your healthcare provider."
+  }
+]

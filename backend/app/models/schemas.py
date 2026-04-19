@@ -1,9 +1,10 @@
 """
 Pydantic models for request/response validation.
+Extended with medical report, health profile, and daily advisor schemas.
 """
 
 from pydantic import BaseModel, EmailStr, Field, validator
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 from datetime import datetime
 from enum import Enum
 
@@ -27,6 +28,16 @@ class Severity(str, Enum):
     MODERATE = "moderate"
     SEVERE = "severe"
 
+
+class Gender(str, Enum):
+    """Gender enumeration."""
+    MALE = "male"
+    FEMALE = "female"
+    OTHER = "other"
+    PREFER_NOT_TO_SAY = "prefer_not_to_say"
+
+
+# ─────────────────────────────── Auth ────────────────────────────────
 
 class UserRegisterRequest(BaseModel):
     """User registration request."""
@@ -67,9 +78,11 @@ class UserProfile(BaseModel):
         from_attributes = True
 
 
+# ─────────────────────────────── Chat ────────────────────────────────
+
 class ChatRequest(BaseModel):
     """Chat/symptom input request."""
-    symptoms: List[str] = Field(..., min_items=1)
+    symptoms: List[str] = Field(default_factory=list)
     message: Optional[str] = None
     session_id: Optional[str] = None
 
@@ -95,6 +108,8 @@ class StreamChunk(BaseModel):
     structured_data: Optional[MedicalResponse] = None
 
 
+# ─────────────────────────────── Feedback ────────────────────────────
+
 class FeedbackRequest(BaseModel):
     """User feedback request."""
     session_id: str
@@ -110,6 +125,8 @@ class FeedbackResponse(BaseModel):
     message: str
 
 
+# ─────────────────────────────── Sessions ────────────────────────────
+
 class SessionResponse(BaseModel):
     """User session response."""
     id: str
@@ -122,6 +139,138 @@ class SessionResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
+# ─────────────────────────────── Health Profile ──────────────────────
+
+class HealthProfileRequest(BaseModel):
+    """Request to create or update a user's health profile."""
+    age: Optional[int] = Field(None, ge=1, le=130)
+    gender: Optional[Gender] = None
+    blood_group: Optional[str] = None  # e.g. "A+", "O-"
+    height_cm: Optional[float] = Field(None, ge=50, le=300)
+    weight_kg: Optional[float] = Field(None, ge=1, le=700)
+    allergies: Optional[List[str]] = None
+    chronic_conditions: Optional[List[str]] = None
+    current_medications: Optional[List[str]] = None
+    family_history: Optional[List[str]] = None
+    lifestyle_notes: Optional[str] = None
+
+
+class HealthProfileResponse(BaseModel):
+    """User health profile response."""
+    id: str
+    user_id: str
+    age: Optional[int]
+    gender: Optional[str]
+    blood_group: Optional[str]
+    height_cm: Optional[float]
+    weight_kg: Optional[float]
+    bmi: Optional[float]
+    allergies: Optional[List[str]]
+    chronic_conditions: Optional[List[str]]
+    current_medications: Optional[List[str]]
+    family_history: Optional[List[str]]
+    lifestyle_notes: Optional[str]
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# ─────────────────────────────── Medical Reports ─────────────────────
+
+class BiomarkerOut(BaseModel):
+    """Single biomarker reading from a report."""
+    id: str
+    name: str
+    value: Optional[float]
+    unit: Optional[str]
+    reference_low: Optional[float]
+    reference_high: Optional[float]
+    status: Optional[str]  # "normal" | "high" | "low" | "critical"
+    report_date: Optional[datetime]
+
+    class Config:
+        from_attributes = True
+
+
+class MedicalReportSummary(BaseModel):
+    """Lightweight report summary for listing."""
+    id: str
+    filename: str
+    report_type: Optional[str]
+    is_medical: bool
+    report_date: Optional[datetime]
+    uploaded_at: datetime
+    ai_summary: Optional[str]
+    biomarker_count: int = 0
+
+    class Config:
+        from_attributes = True
+
+
+class MedicalReportDetail(BaseModel):
+    """Full report detail including biomarkers."""
+    id: str
+    filename: str
+    file_type: str
+    report_type: Optional[str]
+    is_medical: bool
+    is_medical_confidence: Optional[float]
+    ai_summary: Optional[str]
+    report_date: Optional[datetime]
+    uploaded_at: datetime
+    biomarkers: List[BiomarkerOut] = []
+
+    class Config:
+        from_attributes = True
+
+
+class MedicalReportUploadResponse(BaseModel):
+    """Response after uploading a medical report."""
+    success: bool
+    report_id: str
+    is_medical: bool
+    report_type: Optional[str]
+    biomarker_count: int
+    ai_summary: str
+    message: str
+
+
+class BiomarkerTrendPoint(BaseModel):
+    """Single data point in a biomarker trend."""
+    date: str
+    value: float
+    unit: Optional[str]
+    status: Optional[str]
+    reference_low: Optional[float]
+    reference_high: Optional[float]
+    report_id: str
+
+
+class BiomarkerTrendsResponse(BaseModel):
+    """All biomarker trends for a user."""
+    trends: Dict[str, List[BiomarkerTrendPoint]]  # biomarker_name → [points]
+    total_reports: int
+
+
+# ─────────────────────────────── Daily Advisor ───────────────────────
+
+class DailyAdviceRequest(BaseModel):
+    """Request for daily lifestyle advice."""
+    message: str
+    symptoms: Optional[List[str]] = []
+    session_id: Optional[str] = None
+
+
+class DailyAdviceResponse(BaseModel):
+    """Response from daily advisor agent."""
+    advice: str
+    session_id: str
+
+
+# ─────────────────────────────── Misc ────────────────────────────────
 
 class HealthCheckResponse(BaseModel):
     """Health check response."""

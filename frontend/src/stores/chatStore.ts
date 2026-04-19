@@ -1,69 +1,85 @@
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 
-export interface MedicalResponse {
-  possible_conditions: string[]
-  confidence_level: 'low' | 'medium' | 'high'
-  follow_up_questions: string[]
-  risk_factors: string[]
-  suggested_tests: string[]
-  lifestyle_recommendations: string[]
-  severity: 'mild' | 'moderate' | 'severe'
-  should_see_doctor: boolean
-  reasoning?: string
-}
+export type AgentType = 'triage' | 'diagnostic' | 'lifestyle' | 'followup' | 'guardrails' | 'rag'
 
 interface Message {
   id: string
-  role: 'user' | 'assistant'
+  role: 'user' | 'assistant' | 'system'
   content: string
-  structuredData?: MedicalResponse
   timestamp: Date
+  isEmergency?: boolean
 }
 
 interface ChatStore {
   messages: Message[]
+  sessionId: string | null
   isStreaming: boolean
   currentStreamContent: string
-  sessionsRemaining: number
-  
+  currentAgent: AgentType | null
+
   addMessage: (message: Omit<Message, 'id' | 'timestamp'>) => void
   updateStreamContent: (content: string) => void
+  appendStreamContent: (content: string) => void
   setStreaming: (value: boolean) => void
-  setSessionsRemaining: (count: number) => void
-  clearChat: () => void
+  setCurrentAgent: (agent: AgentType | null) => void
+  setSessionId: (id: string) => void
+  resetSession: () => void
 }
 
-export const useChatStore = create<ChatStore>((set) => ({
-  messages: [],
-  isStreaming: false,
-  currentStreamContent: '',
-  sessionsRemaining: 5,
-  
-  addMessage: (message) => 
-    set((state) => ({
-      messages: [
-        ...state.messages,
-        {
-          ...message,
-          id: Math.random().toString(36).substr(2, 9),
-          timestamp: new Date()
-        }
-      ]
-    })),
-  
-  updateStreamContent: (content) =>
-    set({ currentStreamContent: content }),
-  
-  setStreaming: (value) => 
-    set({ isStreaming: value, currentStreamContent: value ? '' : '' }),
-  
-  setSessionsRemaining: (count) =>
-    set({ sessionsRemaining: count }),
-  
-  clearChat: () => 
-    set({
+export const useChatStore = create<ChatStore>()(
+  persist(
+    (set) => ({
       messages: [],
+      sessionId: null,
+      isStreaming: false,
       currentStreamContent: '',
-      isStreaming: false
-    })
-}))
+      currentAgent: null,
+
+      addMessage: (message) =>
+        set((state) => ({
+          messages: [
+            ...state.messages,
+            {
+              ...message,
+              id: Math.random().toString(36).substr(2, 9),
+              timestamp: new Date()
+            }
+          ]
+        })),
+
+      updateStreamContent: (content) =>
+        set({ currentStreamContent: content }),
+
+      appendStreamContent: (content) =>
+        set((state) => ({
+          currentStreamContent: state.currentStreamContent + content
+        })),
+
+      setStreaming: (value) =>
+        set({ isStreaming: value, currentStreamContent: '' }),
+
+      setCurrentAgent: (agent) =>
+        set({ currentAgent: agent }),
+
+      setSessionId: (id) =>
+        set({ sessionId: id }),
+
+      resetSession: () =>
+        set({
+          sessionId: null,
+          messages: [],
+          currentStreamContent: '',
+          isStreaming: false,
+          currentAgent: null
+        })
+    }),
+    {
+      name: 'doctorg-chat',
+      partialize: (state) => ({
+        messages: state.messages,
+        sessionId: state.sessionId
+      })
+    }
+  )
+)

@@ -2,19 +2,15 @@ fastapi==0.109.0
 uvicorn[standard]==0.27.0
 sqlalchemy==2.0.25
 psycopg2-binary==2.9.9
-pydantic==2.5.3
+pydantic[email]==2.5.3
 pydantic-settings==2.1.0
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 python-multipart==0.0.6
 aiohttp==3.9.3
 
-torch==2.2.0
-transformers==4.37.2
-peft==0.8.2
-bitsandbytes==0.42.0
-accelerate==0.26.1
-datasets==2.16.1
+openai>=1.12.0
+tenacity==8.2.3
 sentence-transformers==2.3.1
 
 faiss-cpu==1.7.4
@@ -24,4 +20,13 @@ pandas==2.2.0
 redis==5.0.1
 python-dotenv==1.0.0
 slowapi==0.1.9
-openai==1.12.0
+
+# Medical Report Parsing
+PyMuPDF==1.23.26
+Pillow==10.2.0
+
+# Metrics & Evaluation
+scikit-learn==1.4.0
+rouge-score==0.1.2
+nltk==3.8.1
+tabulate==0.9.0

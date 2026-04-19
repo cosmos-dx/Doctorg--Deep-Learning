@@ -1,5 +1,6 @@
 """
 Chat API endpoints with SSE streaming support.
+Multi-agent medical consultation system.
 """
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -8,22 +9,48 @@ from sqlalchemy.orm import Session
 import asyncio
 import json
 import logging
+from typing import Optional
+import uuid
 
 from app.db.database import get_db
 from app.db.models import User
 from app.models.schemas import ChatRequest, StreamChunk
 from app.core.security import get_current_user
 from app.core.constants import ErrorMessages
-from app.ml.llm.inference import create_llm_service
+from app.core.errors import EmergencyDetectedError, AgentError
 from app.ml.rag.memory_engine import create_memory_engine
-from app.services.subscription import create_subscription_service
+from app.services.openai_service import create_openai_service
+from app.agents.orchestrator import AgentOrchestrator
+from app.agents.rag_agent import RAGAgent
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
-llm_service = create_llm_service()
-memory_engine = create_memory_engine()
-subscription_service = create_subscription_service(llm_service, memory_engine)
+_memory_engine = None
+_orchestrator = None
+
+
+def _get_orchestrator() -> AgentOrchestrator:
+    """Lazy-init orchestrator so env vars are loaded before construction."""
+    global _memory_engine, _orchestrator
+    if _orchestrator is None:
+        _memory_engine = create_memory_engine()
+        openai_service = create_openai_service()
+        rag_agent = RAGAgent(
+            openai_service=openai_service,
+            memory_engine=_memory_engine
+        )
+        _orchestrator = AgentOrchestrator(
+            openai_service=openai_service,
+            rag_agent=rag_agent,
+            memory_engine=_memory_engine
+        )
+    return _orchestrator
+
+
+def _get_memory_engine():
+    _get_orchestrator()
+    return _memory_engine
 
 
 @router.post("/stream")
@@ -33,70 +60,100 @@ async def chat_stream(
     db: Session = Depends(get_db)
 ):
     """
-    Stream medical response in real-time using SSE.
+    Stream medical consultation through multi-agent system using SSE.
     """
     async def event_generator():
         try:
-            if not await subscription_service.check_access(current_user, "session"):
-                error_chunk = StreamChunk(
-                    error=ErrorMessages.SESSION_LIMIT_REACHED,
-                    done=True
-                )
-                yield f"data: {error_chunk.json()}\n\n"
-                return
+            session_id = request.session_id or str(uuid.uuid4())
             
-            has_memory = await subscription_service.check_access(current_user, "memory")
+            orchestrator = _get_orchestrator()
+            memory_engine = _get_memory_engine()
             
-            history = None
-            if has_memory:
-                relevant_history = await memory_engine.retrieve_relevant_history(
-                    current_user.id,
-                    " ".join(request.symptoms),
-                    db
+            conversation_history = []
+            if request.session_id:
+                history_records = await memory_engine.get_user_session_history(
+                    user_id=str(current_user.id),
+                    db=db,
+                    limit=5
                 )
                 
-                if relevant_history:
-                    history = memory_engine.format_history_for_context(relevant_history)
+                for record in history_records:
+                    if record.get("session_id") == request.session_id:
+                        conversation_history.append({
+                            "role": "assistant",
+                            "content": str(record.get("diagnosis", {}))
+                        })
             
-            full_response = ""
+            user_message = request.message if hasattr(request, 'message') else " ".join(request.symptoms)
             
-            async for chunk in llm_service.generate_stream(request.symptoms, history):
-                full_response += chunk
-                
-                stream_chunk = StreamChunk(content=chunk, done=False)
-                yield f"data: {stream_chunk.json()}\n\n"
+            # Fetch Health Profile and Report History
+            from app.db.models import UserHealthProfile, MedicalReport
+            
+            profile = db.query(UserHealthProfile).filter(UserHealthProfile.user_id == str(current_user.id)).first()
+            recent_reports = db.query(MedicalReport).filter(
+                MedicalReport.user_id == str(current_user.id),
+                MedicalReport.is_medical == True
+            ).order_by(MedicalReport.report_date.desc().nullslast()).limit(3).all()
+            
+            lab_history = []
+            for r in recent_reports:
+                for b in r.biomarkers:
+                    lab_history.append(f"{b.name}: {b.value} {b.unit} ({b.status})")
+            
+            metadata = {
+                "health_profile": {
+                    "age": profile.age, "gender": profile.gender, "lifestyle_notes": profile.lifestyle_notes,
+                    "chronic_conditions": profile.chronic_conditions, "allergies": profile.allergies
+                } if profile else None,
+                "lab_history": lab_history if lab_history else None
+            }
+            
+            async for chunk in orchestrator.process_stream(
+                user_message=user_message,
+                symptoms=request.symptoms,
+                user_id=str(current_user.id),
+                session_id=session_id,
+                conversation_history=conversation_history,
+                db=db,
+                metadata=metadata
+            ):
+                chunk_json = json.dumps(chunk)
+                yield f"data: {chunk_json}\n\n"
                 
                 await asyncio.sleep(0.01)
             
-            medical_response = await llm_service.generate_medical_response(
-                request.symptoms,
-                history
-            )
+            final_chunk = {
+                "type": "done",
+                "session_id": session_id,
+                "content": "Consultation complete"
+            }
+            yield f"data: {json.dumps(final_chunk)}\n\n"
             
-            session_id = await memory_engine.store_session(
-                user_id=current_user.id,
-                symptoms=request.symptoms,
-                diagnosis=medical_response.dict(),
-                db=db
-            )
+        except EmergencyDetectedError as e:
+            logger.warning(f"Emergency detected: {e.message}")
+            emergency_chunk = {
+                "type": "emergency",
+                "content": e.message,
+                "symptoms": e.details.get("detected_symptoms", [])
+            }
+            yield f"data: {json.dumps(emergency_chunk)}\n\n"
             
-            await subscription_service.increment_session_count(current_user, db)
-            
-            remaining = await subscription_service.get_remaining_sessions(current_user)
-            
-            final_chunk = StreamChunk(
-                done=True,
-                structured_data=medical_response
-            )
-            yield f"data: {final_chunk.json()}\n\n"
+        except AgentError as e:
+            logger.error(f"Agent error: {e.message}")
+            error_chunk = {
+                "type": "error",
+                "content": e.message,
+                "error_code": e.error_code
+            }
+            yield f"data: {json.dumps(error_chunk)}\n\n"
             
         except Exception as e:
-            logger.error(f"Stream error: {e}")
-            error_chunk = StreamChunk(
-                error=ErrorMessages.LLM_GENERATION_ERROR,
-                done=True
-            )
-            yield f"data: {error_chunk.json()}\n\n"
+            logger.error(f"Unexpected stream error: {e}")
+            error_chunk = {
+                "type": "error",
+                "content": ErrorMessages.LLM_GENERATION_ERROR
+            }
+            yield f"data: {json.dumps(error_chunk)}\n\n"
     
     return StreamingResponse(
         event_generator(),
@@ -116,18 +173,81 @@ async def predict(
     db: Session = Depends(get_db)
 ):
     """
-    Generate medical response (non-streaming).
+    Generate medical consultation (non-streaming) through multi-agent system.
     """
-    result = await subscription_service.generate_response(
-        current_user,
-        request.symptoms,
-        db
-    )
-    
-    if "error" in result:
-        raise HTTPException(
-            status_code=403,
-            detail=result["error"]
+    try:
+        orchestrator = _get_orchestrator()
+        
+        session_id = request.session_id or str(uuid.uuid4())
+        
+        conversation_history = []
+        user_message = request.message if hasattr(request, 'message') else " ".join(request.symptoms)
+        
+        from app.db.models import UserHealthProfile, MedicalReport
+        profile = db.query(UserHealthProfile).filter(UserHealthProfile.user_id == str(current_user.id)).first()
+        recent_reports = db.query(MedicalReport).filter(
+            MedicalReport.user_id == str(current_user.id),
+            MedicalReport.is_medical == True
+        ).order_by(MedicalReport.report_date.desc().nullslast()).limit(3).all()
+        
+        lab_history = []
+        for r in recent_reports:
+            for b in r.biomarkers:
+                lab_history.append(f"{b.name}: {b.value} {b.unit} ({b.status})")
+                
+        metadata = {
+            "health_profile": {
+                "age": profile.age, "gender": profile.gender, "lifestyle_notes": profile.lifestyle_notes,
+                "chronic_conditions": profile.chronic_conditions, "allergies": profile.allergies
+            } if profile else None,
+            "lab_history": lab_history if lab_history else None
+        }
+        
+        responses = await orchestrator.process(
+            user_message=user_message,
+            symptoms=request.symptoms,
+            user_id=str(current_user.id),
+            session_id=session_id,
+            conversation_history=conversation_history,
+            db=db,
+            metadata=metadata
         )
-    
-    return result
+        
+        final_response = responses.get("final")
+        
+        return {
+            "success": True,
+            "session_id": session_id,
+            "response": final_response.content if final_response else "",
+            "metadata": {
+                "agents_used": list(responses.keys()),
+                "urgency_level": responses.get("triage", type('obj', (object,), {
+                    'metadata': {}
+                })()).metadata.get("urgency_level", "unknown")
+            }
+        }
+        
+    except EmergencyDetectedError as e:
+        return {
+            "success": False,
+            "emergency": True,
+            "message": e.message,
+            "symptoms": e.details.get("detected_symptoms", [])
+        }
+        
+    except AgentError as e:
+        logger.error(f"Agent error in predict: {e.message}")
+        raise HTTPException(
+            status_code=500,
+            detail={
+                "message": e.message,
+                "error_code": e.error_code
+            }
+        )
+        
+    except Exception as e:
+        logger.error(f"Unexpected error in predict: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail={"message": ErrorMessages.LLM_GENERATION_ERROR}
+        )
